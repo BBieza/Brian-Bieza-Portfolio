@@ -2,8 +2,5 @@
 title: "About"
 ---
 
-About this site
-
-```{r}
-1 + 1
-```
+Hello,
+My name is Brian Bieza, I'm from Goleta, California and acquired my Bachelors degree at California State University Monterey Bay. Living along the coastline has fostered a love for the ocean and at 16 I acquired my open water scuba diving licence through University of California Santa Barbara (UCSB). This grew from a passion to something that I wanted to share with others which drove me to search for furthering this experience in diving up in Monterey Bay where I got my AAUS science diving certification. Ultimately I hope to share my love for the ocean with others and influence the next generation to value more sustainable practices as well as emphasise the importance of Science and knowledge.
