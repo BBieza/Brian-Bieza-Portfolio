@@ -1,13 +1,15 @@
 project:
   type: website
-output-dir: docs
+  output-dir: docs
+
 website:
   title: "Brian Bieza Portfolio"
   navbar:
     left:
       - href: index.qmd
         text: Home
-      - about.qmd
+      - href: about.qmd
+        text: About
 
 format:
   html:
@@ -18,4 +20,3 @@ format:
     toc: true
 
 editor: visual
-
