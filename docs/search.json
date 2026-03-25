@@ -19,5 +19,26 @@
     "title": "About",
     "section": "",
     "text": "Hello, My name is Brian Bieza, I’m from Goleta, California and acquired my Bachelors degree at California State University Monterey Bay. Living along the coastline has fostered a love for the ocean and at 16 I acquired my open water scuba diving licence through University of California Santa Barbara (UCSB). This grew from a passion to something that I wanted to share with others which drove me to search for furthering this experience in diving up in Monterey Bay where I got my AAUS science diving certification. Ultimately I hope to share my love for the ocean with others and influence the next generation to value more sustainable practices as well as emphasise the importance of Science and knowledge."
+  },
+  {
+    "objectID": "Project_Overview.html",
+    "href": "Project_Overview.html",
+    "title": "Project_Overview",
+    "section": "",
+    "text": "The dataset I plan to use in this project comes from the Partnership for Interdisciplinary Studies of Coastal Oceans (PISCO). PISCO collects long-term ecological monitoring data along the West Coast of North America; including fish abundance, species composition, and environmental conditions."
+  },
+  {
+    "objectID": "Project_Overview.html#data-visualization",
+    "href": "Project_Overview.html#data-visualization",
+    "title": "Project_Overview",
+    "section": "Data Visualization",
+    "text": "Data Visualization\n\nFinal Visualization Goals\nThe final visualizations will include:\n\nBar charts showing total or average fish counts by species\nLine graphs showing trends in fish counts over time\nBoxplots or violin charts comparing counts across regions\n\n\n\nMissing or Needed Data Changes\nTo create these visualizations, the following changes may be needed:\n\nAggregating counts by species, site, or year\nHandling missing or zero counts appropriately\nPossibly grouping duplicate species into the same categories"
+  },
+  {
+    "objectID": "Project_Overview.html#data-cleaning",
+    "href": "Project_Overview.html#data-cleaning",
+    "title": "Project_Overview",
+    "section": "Data Cleaning",
+    "text": "Data Cleaning\n\nCleaning Steps\n\nReformat variables? The year variable may need to be converted into a date format, and species names may be converted to factors.\nHandle missing data? Missing values in count or site variables will be addressed by removing incomplete rows or replacing with appropriate values.\nFilter data? The dataset may be filtered to focus on specific regions, years, or species of interest.\nCreate new variables? New variables such as total counts per site/year or grouped species categories will be created.\nJoin additional data? Additional PISCO datasets may be joined for this analysis.\nSummarize variables? Aggregated summaries (e.g., mean or total counts by species, site, or year) will be calculated."
   }
 ]
