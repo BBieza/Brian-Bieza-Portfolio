@@ -3,3 +3,68 @@ title: "Project_Overview"
 format: html
 ---
 
+### Data Source
+
+The dataset I plan to use in this project comes from the Partnership for Interdisciplinary Studies of Coastal Oceans (PISCO). PISCO collects long-term ecological monitoring data along the West Coast of North America; including fish abundance, species composition, and environmental conditions.
+
+### Data Description
+
+The dataset contains observations of fish counts collected from underwater surveys at multiple sites along the West Coast.
+
+Key variables include:
+
+-   **Site (categorical)**: Location where the survey was conducted
+-   **Year (numeric/date)**: Year of observation
+-   **Species (categorical)**: Fish species observed
+-   **Count (numeric)**: Number of individuals recorded
+-   **Depth (numeric)**: Depth at which the survey was conducted
+-   **Region (categorical)**: Broader geographic classification (e.g., Northern CA, Central CA, Southern CA)
+
+Ultimately this dataset includes a mix of categorical and numeric variables.
+
+### Research Questions
+
+The questions I aim to answer are:
+
+1.  How do fish abundances vary across different regions of the West Coast?
+2.  Which species are most abundant or most commonly observed?
+3.  How have fish counts changed over time at selected sites?
+4.  Proportions of species variation throughout the West Coast.
+
+------------------------------------------------------------------------
+
+## Data Visualization
+
+### Final Visualization Goals
+
+The final visualizations will include:
+
+-   **Bar charts** showing total or average fish counts by species
+-   **Line graphs** showing trends in fish counts over time
+-   **Boxplots or violin charts** comparing counts across regions
+
+### Missing or Needed Data Changes
+
+To create these visualizations, the following changes may be needed:
+
+-   Aggregating counts by species, site, or year
+-   Handling missing or zero counts appropriately
+-   Possibly grouping duplicate species into the same categories
+
+------------------------------------------------------------------------
+
+## Data Cleaning
+
+### Cleaning Steps
+
+-   **Reformat variables?** The year variable may need to be converted into a date format, and species names may be converted to factors.
+
+-   **Handle missing data?** Missing values in count or site variables will be addressed by removing incomplete rows or replacing with appropriate values.
+
+-   **Filter data?** The dataset may be filtered to focus on specific regions, years, or species of interest.
+
+-   **Create new variables?** New variables such as total counts per site/year or grouped species categories will be created.
+
+-   **Join additional data?** Additional PISCO datasets may be joined for this analysis.
+
+-   **Summarize variables?** Aggregated summaries (e.g., mean or total counts by species, site, or year) will be calculated.
