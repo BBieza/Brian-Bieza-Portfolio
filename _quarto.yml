@@ -10,7 +10,7 @@ website:
         text: Home
       - href: about.qmd
         text: About
-      - href: Portfolio Project/Stat_210_Final_Project.qmd
+      - href: Portfolio_Project/Stat_210_Final_Project.qmd
         text: Portfolio
 
 format:
