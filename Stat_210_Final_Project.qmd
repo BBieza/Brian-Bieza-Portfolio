@@ -2,7 +2,7 @@
 title: "Stat 210 Final Project"
 Author: "Brian Bieza"
 Date: 4-29-2026
-format: pdf
+format: html
 ---
 
 ## Load Libraries

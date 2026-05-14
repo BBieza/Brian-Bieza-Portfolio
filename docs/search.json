@@ -40,5 +40,159 @@
     "title": "Project_Overview",
     "section": "Data Cleaning",
     "text": "Data Cleaning\n\nCleaning Steps\n\nReformat variables? The year variable may need to be converted into a date format, and species names may be converted to factors.\nHandle missing data? Missing values in count or site variables will be addressed by removing incomplete rows or replacing with appropriate values.\nFilter data? The dataset may be filtered to focus on specific regions, years, or species of interest.\nCreate new variables? New variables such as total counts per site/year or grouped species categories will be created.\nJoin additional data? Additional PISCO datasets may be joined for this analysis.\nSummarize variables? Aggregated summaries (e.g., mean or total counts by species, site, or year) will be calculated."
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html",
+    "href": "Stat_210_Final_Project.html",
+    "title": "Stat 210 Final Project",
+    "section": "",
+    "text": "library(ggrepel)\nlibrary(ggpmisc)\nlibrary(tidyverse)\nlibrary(vegan)"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#load-libraries",
+    "href": "Stat_210_Final_Project.html#load-libraries",
+    "title": "Stat 210 Final Project",
+    "section": "",
+    "text": "library(ggrepel)\nlibrary(ggpmisc)\nlibrary(tidyverse)\nlibrary(vegan)"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#loading-in-csvs",
+    "href": "Stat_210_Final_Project.html#loading-in-csvs",
+    "title": "Stat 210 Final Project",
+    "section": "Loading in CSV’s",
+    "text": "Loading in CSV’s\n\nFish &lt;- read.csv(\"Group_3_Mastersheet.csv\")"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#cleaning-data",
+    "href": "Stat_210_Final_Project.html#cleaning-data",
+    "title": "Stat 210 Final Project",
+    "section": "Cleaning Data",
+    "text": "Cleaning Data\n\nFish_Cleaned &lt;- Fish %&gt;%\n  select(Location, Species, Observed_Behavior, Adjacent_Habitat) %&gt;% \n  mutate(Location = recode(Location, \"McAbee\" = \"Mcabee\"),\n         Species = recode(Species, \"Black_Eyed_Goby\" = \"Black_Eyed_Goby\"))\n\n# added Northern California/Southern California\nFish_Cleaned_2 &lt;- Fish_Cleaned %&gt;%\n  filter(!str_detect(Species, \"YOY|UFO\")) %&gt;% \n  mutate(Region = case_when(\n    Location %in% c(\"NMON\", \"SMON\", \"Carmel_Beach\") ~ \"Carmel_Bay\",\n    Location %in% c(\"BW_Wall\", \"BW_Reef\", \"Mcabee\")  ~ \"Monterey_Bay\",\n    Location == \"Point_Pinos\"                         ~ \"Transition_Zone\",\n    TRUE ~ NA_character_),\n  Species = recode(Species, \"Black_Eyed_Goby\" = \"Black_Eyed_Goby\")\n  )"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#diversity-by-site",
+    "href": "Stat_210_Final_Project.html#diversity-by-site",
+    "title": "Stat 210 Final Project",
+    "section": "Diversity by Site",
+    "text": "Diversity by Site\n\n# Shannon diversity by individual site\n\n# Build a species x site abundance matrix\nspecies_matrix &lt;- Fish_Cleaned_2 %&gt;%\n  group_by(Location, Species) %&gt;%\n  summarise(count = n(), .groups = \"drop\") %&gt;%\n  pivot_wider(names_from = Species, values_from = count, values_fill = 0) %&gt;%\n  column_to_rownames(\"Location\")\n\n# Calculate Shannon H' per site\nshannon &lt;- diversity(species_matrix, index = \"shannon\")\n\nshannon_df &lt;- shannon %&gt;%\n  as.data.frame() %&gt;%\n  rownames_to_column(\"Location\") %&gt;%\n  rename(Shannon = \".\") %&gt;%\n  left_join(\n    Fish_Cleaned_2 %&gt;% distinct(Location, Region),\n    by = \"Location\"\n  )\n\n\nprint(shannon_df)\n\n      Location   Shannon          Region\n1      BW_Reef 1.1481647    Monterey_Bay\n2      BW_Wall 2.3506162    Monterey_Bay\n3 Carmel_Beach 0.6931472      Carmel_Bay\n4       Mcabee 0.9976149    Monterey_Bay\n5         NMON 1.1285963      Carmel_Bay\n6  Point_Pinos 1.0121571 Transition_Zone\n7         SMON 1.0114043      Carmel_Bay"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#diversity-by-region",
+    "href": "Stat_210_Final_Project.html#diversity-by-region",
+    "title": "Stat 210 Final Project",
+    "section": "Diversity by Region",
+    "text": "Diversity by Region\n\n# Build species x region abundance matrix\nRegion_Matrix &lt;- Fish_Cleaned_2 %&gt;%\n  group_by(Region, Species) %&gt;%\n  summarise(count = n(), .groups = \"drop\") %&gt;%\n  pivot_wider(names_from = Species, values_from = count, values_fill = 0) %&gt;%\n  column_to_rownames(\"Region\")\n\n# Calculate Shannon diversity per region\nshannon_region &lt;- diversity(Region_Matrix, index = \"shannon\")\n\n# Convert to tidy dataframe\nshannon_df &lt;- shannon_df %&gt;%\n  mutate(Location = factor(Location, levels = c(\n    \"BW_Wall\", \"BW_Reef\", \"Mcabee\",      # Monterey Bay\n    \"Point_Pinos\",                         # Transition Zone\n    \"NMON\", \"SMON\", \"Carmel_Beach\"        # Carmel Bay\n  )),\n  Region = factor(Region, levels = c(\"Monterey_Bay\", \"Transition_Zone\", \"Carmel_Bay\")))\n\n# View results\nprint(shannon_df)\n\n      Location   Shannon          Region\n1      BW_Reef 1.1481647    Monterey_Bay\n2      BW_Wall 2.3506162    Monterey_Bay\n3 Carmel_Beach 0.6931472      Carmel_Bay\n4       Mcabee 0.9976149    Monterey_Bay\n5         NMON 1.1285963      Carmel_Bay\n6  Point_Pinos 1.0121571 Transition_Zone\n7         SMON 1.0114043      Carmel_Bay"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#shannon-diversity-by-site",
+    "href": "Stat_210_Final_Project.html#shannon-diversity-by-site",
+    "title": "Stat 210 Final Project",
+    "section": "Shannon Diversity by Site",
+    "text": "Shannon Diversity by Site\n\nggplot(shannon_df, aes(x = Location, y = Shannon, fill = Region)) +\n  geom_col(color = \"white\", linewidth = 0.5) +\n  geom_text(aes(label = round(Shannon, 2)), hjust = -0.2, size = 3.5) +\n  scale_fill_manual(values = c(\n    \"Carmel_Bay\"      = \"steelblue\",\n    \"Monterey_Bay\"    = \"orange\",\n    \"Transition_Zone\" = \"red\"\n  )) +\n  coord_flip() +\n  theme_minimal(base_size = 12) +\n  theme(legend.position = \"right\") +\n  expand_limits(y = max(shannon_df$Shannon) * 1.15) +\n  labs(\n    title = \"Shannon Diversity by Site\",\n    x = NULL,\n    y = \"Shannon H'\",\n    fill = \"Region\"\n  )"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#species-richness",
+    "href": "Stat_210_Final_Project.html#species-richness",
+    "title": "Stat 210 Final Project",
+    "section": "Species Richness",
+    "text": "Species Richness\n\n# Richness per site\nrichness_site &lt;- Fish_Cleaned_2 %&gt;%\n  group_by(Location, Region) %&gt;%\n  summarise(Richness = n_distinct(Species), .groups = \"drop\")\n\n# Richness per region\nrichness_region &lt;- Fish_Cleaned_2 %&gt;%\n  group_by(Region) %&gt;%\n  summarise(Richness = n_distinct(Species), .groups = \"drop\")\n\n# View results\nprint(richness_site)\n\n# A tibble: 7 × 3\n  Location     Region          Richness\n  &lt;chr&gt;        &lt;chr&gt;              &lt;int&gt;\n1 BW_Reef      Monterey_Bay           6\n2 BW_Wall      Monterey_Bay          17\n3 Carmel_Beach Carmel_Bay             2\n4 Mcabee       Monterey_Bay           5\n5 NMON         Carmel_Bay             5\n6 Point_Pinos  Transition_Zone        5\n7 SMON         Carmel_Bay             3\n\nprint(richness_region)\n\n# A tibble: 3 × 2\n  Region          Richness\n  &lt;chr&gt;              &lt;int&gt;\n1 Carmel_Bay             9\n2 Monterey_Bay          19\n3 Transition_Zone        5"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#diversity-dataframe",
+    "href": "Stat_210_Final_Project.html#diversity-dataframe",
+    "title": "Stat 210 Final Project",
+    "section": "Diversity Dataframe",
+    "text": "Diversity Dataframe\n\ndiversity_summary &lt;- shannon_df %&gt;%\n  left_join(richness_site, by = c(\"Location\", \"Region\"))\n\nprint(diversity_summary)\n\n      Location   Shannon          Region Richness\n1      BW_Reef 1.1481647    Monterey_Bay        6\n2      BW_Wall 2.3506162    Monterey_Bay       17\n3 Carmel_Beach 0.6931472      Carmel_Bay        2\n4       Mcabee 0.9976149    Monterey_Bay        5\n5         NMON 1.1285963      Carmel_Bay        5\n6  Point_Pinos 1.0121571 Transition_Zone        5\n7         SMON 1.0114043      Carmel_Bay        3"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#data-cleaning-for-behavior-associations",
+    "href": "Stat_210_Final_Project.html#data-cleaning-for-behavior-associations",
+    "title": "Stat 210 Final Project",
+    "section": "Data Cleaning For Behavior Associations",
+    "text": "Data Cleaning For Behavior Associations\n\n# Remove YOY, UFO, and any blank/NA entries\nFish_Cleaned_3 &lt;- Fish_Cleaned_2 %&gt;%\n  filter(!str_detect(Species, \"YOY|UFO\")) %&gt;%\n  filter(Species != \"\" & !is.na(Species)) %&gt;%\n  filter(Observed_Behavior != \"\" & !is.na(Observed_Behavior)) %&gt;%\n  mutate(Species = recode(Species, \"Black_Eyed_Gobeye\" = \"Black_Eyed_Goby\"))\n\n# Check what you're working with\nunique(Fish_Cleaned_3$Species)\n\n [1] \"Bocaccio\"            \"Blue_Rockfish\"       \"Pile_Perch\"         \n [4] \"Rockfish\"            \"Olive_Rockfish\"      \"Perch\"              \n [7] \"Kelp_Perch\"          \"Painted_Greenling\"   \"Yellowtail_Rockfish\"\n[10] \"Kelp_Greenling\"      \"Rubberlip_Perch\"     \"Kelp_Bass\"          \n[13] \"CA_Sheephead_F\"      \"Black_Eyed_Goby\"     \"Halfmoon\"           \n[16] \"Opaleye\"             \"Blacksmith\"          \"Kelp_Rockfish\"      \n[19] \"Lingcod\"             \"Black_Perch\"         \"Striped_Perch\"      \n[22] \"Senorita\"            \"Copper_Rockfish\"    \n\nunique(Fish_Cleaned_3$Observed_Behavior)\n\n[1] \"Swimming\"        \"Holding_Station\""
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#behavior-associations",
+    "href": "Stat_210_Final_Project.html#behavior-associations",
+    "title": "Stat 210 Final Project",
+    "section": "Behavior Associations",
+    "text": "Behavior Associations\n\n# Behavior x Species\nbehavior_species &lt;- Fish_Cleaned_3 %&gt;%\n  count(Species, Observed_Behavior) %&gt;%\n  pivot_wider(names_from = Observed_Behavior, values_from = n, values_fill = 0) %&gt;%\n  column_to_rownames(\"Species\")\n\nchisq_species &lt;- chisq.test(behavior_species)\n\nWarning in chisq.test(behavior_species): Chi-squared approximation may be\nincorrect\n\nprint(chisq_species)\n\n\n    Pearson's Chi-squared test\n\ndata:  behavior_species\nX-squared = 81.097, df = 22, p-value = 1.068e-08\n\nfisher_species &lt;- fisher.test(behavior_species, simulate.p.value = TRUE, B = 10000)\nprint(fisher_species)\n\n\n    Fisher's Exact Test for Count Data with simulated p-value (based on\n    10000 replicates)\n\ndata:  behavior_species\np-value = 9.999e-05\nalternative hypothesis: two.sided"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#species-x-behavior-heatmap",
+    "href": "Stat_210_Final_Project.html#species-x-behavior-heatmap",
+    "title": "Stat 210 Final Project",
+    "section": "Species x Behavior Heatmap",
+    "text": "Species x Behavior Heatmap\n\nSpecies_Behavior_Heatmap &lt;- chisq_species$residuals %&gt;%\n  as.data.frame() %&gt;%\n  rownames_to_column(\"Species\") %&gt;%\n  pivot_longer(-Species, names_to = \"Observed_Behavior\", values_to = \"Residual\") %&gt;%\n   mutate(\n    Species = str_replace_all(Species, \"_\", \" \"),\n    Observed_Behavior = str_replace_all(Observed_Behavior, \"_\", \" \")\n  ) %&gt;%\n  ggplot(aes(x = Observed_Behavior, y = Species, fill = Residual)) +\n  geom_tile() +\n  scale_fill_gradient2(low = \"steelblue\", mid = \"white\", high = \"coral\", midpoint = 0) +\n  theme_minimal() +\n  labs(title = \"Species x Behavior Association\",\n       x = \"Observed Behavior\", y = \"Species\")\nprint(Species_Behavior_Heatmap)\n\n\n\n\n\n\n\nggsave(\"Species_Behavior_Heatmap.pdf\", plot = Species_Behavior_Heatmap, width = 10, height = 8, dpi = 300)"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#location-x-behavior-heatmap",
+    "href": "Stat_210_Final_Project.html#location-x-behavior-heatmap",
+    "title": "Stat 210 Final Project",
+    "section": "Location x Behavior Heatmap",
+    "text": "Location x Behavior Heatmap\n\nLocation_Behavior_Heatmap &lt;- chisq_location$residuals %&gt;%\n  as.data.frame() %&gt;%\n  rownames_to_column(\"Location\") %&gt;%\n  pivot_longer(-Location, names_to = \"Observed_Behavior\", values_to = \"Residual\") %&gt;%\n  left_join(\n    Fish_Cleaned_3 %&gt;% distinct(Location, Region),\n    by = \"Location\"\n  ) %&gt;%\n  mutate(\n    Location = str_replace_all(Location, \"_\", \" \"),\n    Observed_Behavior = str_replace_all(Observed_Behavior, \"_\", \" \"),\n    Region = str_replace_all(Region, \"_\", \" \")\n  ) %&gt;%\n  ggplot(aes(x = Observed_Behavior, y = Location, fill = Residual)) +\n  geom_tile(color = \"white\", linewidth = 0.5) +\n  scale_fill_gradient2(low = \"steelblue\", mid = \"white\", high = \"orange\", midpoint = 0) +\n  facet_grid(Region ~ ., scales = \"free_y\", space = \"free_y\") +\n  theme_minimal() +\n  theme(\n    strip.background = element_rect(fill = \"gray90\", color = NA),\n    strip.text = element_text(face = \"bold\", size = 10),\n    panel.spacing = unit(0.5, \"lines\")\n  ) +\n  labs(title = \"Location x Behavior Association\",\n       x = \"Observed Behavior\", y = \"Location\")\nprint(Location_Behavior_Heatmap)\n\n\n\n\n\n\n\nggsave(\"Location_Behavior_Heatmap.pdf\", plot = Location_Behavior_Heatmap, width = 10, height = 8, dpi = 300)"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#adjacent-habitat-x-species",
+    "href": "Stat_210_Final_Project.html#adjacent-habitat-x-species",
+    "title": "Stat 210 Final Project",
+    "section": "Adjacent Habitat x Species",
+    "text": "Adjacent Habitat x Species\n\nhabitat_species &lt;- Fish_Cleaned_3 %&gt;%\n  count(Species, Adjacent_Habitat) %&gt;%\n  pivot_wider(names_from = Adjacent_Habitat, values_from = n, values_fill = 0) %&gt;%\n  column_to_rownames(\"Species\")\n\nfisher_habitat_species &lt;- fisher.test(habitat_species, simulate.p.value = TRUE, B = 10000)\nprint(fisher_habitat_species)\n\n\n    Fisher's Exact Test for Count Data with simulated p-value (based on\n    10000 replicates)\n\ndata:  habitat_species\np-value = 9.999e-05\nalternative hypothesis: two.sided"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#adjacent-habitat-x-location",
+    "href": "Stat_210_Final_Project.html#adjacent-habitat-x-location",
+    "title": "Stat 210 Final Project",
+    "section": "Adjacent Habitat x Location",
+    "text": "Adjacent Habitat x Location\n\nhabitat_location &lt;- Fish_Cleaned_3 %&gt;%\n  count(Location, Adjacent_Habitat) %&gt;%\n  pivot_wider(names_from = Adjacent_Habitat, values_from = n, values_fill = 0) %&gt;%\n  column_to_rownames(\"Location\")\n\nfisher_habitat_location &lt;- fisher.test(habitat_location, simulate.p.value = TRUE, B = 10000)\nprint(fisher_habitat_location)\n\n\n    Fisher's Exact Test for Count Data with simulated p-value (based on\n    10000 replicates)\n\ndata:  habitat_location\np-value = 9.999e-05\nalternative hypothesis: two.sided\n\nchisq_habitat_species &lt;- chisq.test(habitat_species)\n\nWarning in chisq.test(habitat_species): Chi-squared approximation may be\nincorrect"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#habitat-x-species-heatmap",
+    "href": "Stat_210_Final_Project.html#habitat-x-species-heatmap",
+    "title": "Stat 210 Final Project",
+    "section": "Habitat x Species heatmap",
+    "text": "Habitat x Species heatmap\n\nHabitat_Species_Heatmap &lt;- chisq_habitat_species$residuals %&gt;%\n  as.data.frame() %&gt;%\n  rownames_to_column(\"Species\") %&gt;%\n  pivot_longer(-Species, names_to = \"Adjacent_Habitat\", values_to = \"Residual\") %&gt;%\n  mutate(\n    Species = str_replace_all(Species, \"_\", \" \"),\n    Adjacent_Habitat = str_replace_all(Adjacent_Habitat, \"_\", \" \")\n  ) %&gt;%\n  ggplot(aes(x = Adjacent_Habitat, y = Species, fill = Residual)) +\n  geom_tile(color = \"white\", linewidth = 0.5) +\n  scale_fill_gradient2(low = \"steelblue\", mid = \"white\", high = \"coral\", midpoint = 0) +\n  theme_minimal() +\n  labs(title = \"Species x Adjacent Habitat Association\",\n       x = \"Adjacent Habitat\", y = \"Species\")\nprint(Habitat_Species_Heatmap)\n\n\n\n\n\n\n\nggsave(\"Habitat_Species_Heatmap.pdf\", plot = Habitat_Species_Heatmap, width = 10, height = 8, dpi = 300)"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#habitat-x-location-heatmap",
+    "href": "Stat_210_Final_Project.html#habitat-x-location-heatmap",
+    "title": "Stat 210 Final Project",
+    "section": "Habitat x Location heatmap",
+    "text": "Habitat x Location heatmap\n\nchisq_habitat_location &lt;- chisq.test(habitat_location)\n\nWarning in chisq.test(habitat_location): Chi-squared approximation may be\nincorrect\n\nHabitat_Location_Heatmap &lt;- chisq_habitat_location$residuals %&gt;%\n  as.data.frame() %&gt;%\n  rownames_to_column(\"Location\") %&gt;%\n  pivot_longer(-Location, names_to = \"Adjacent_Habitat\", values_to = \"Residual\") %&gt;%\n  left_join(Fish_Cleaned_3 %&gt;% distinct(Location, Region), by = \"Location\") %&gt;%\n  mutate(\n    Location = str_replace_all(Location, \"_\", \" \"),\n    Adjacent_Habitat = str_replace_all(Adjacent_Habitat, \"_\", \" \"),\n    Region = str_replace_all(Region, \"_\", \" \")\n  ) %&gt;%\n  ggplot(aes(x = Adjacent_Habitat, y = Location, fill = Residual)) +\n  geom_tile(color = \"white\", linewidth = 0.5) +\n  scale_fill_gradient2(low = \"steelblue\", mid = \"white\", high = \"coral\", midpoint = 0) +\n  facet_grid(Region ~ ., scales = \"free_y\", space = \"free_y\") +\n  theme_minimal() +\n  theme(\n    strip.background = element_rect(fill = \"gray90\", color = NA),\n    strip.text = element_text(face = \"bold\", size = 10),\n    panel.spacing = unit(0.5, \"lines\")\n  ) +\n  labs(title = \"Location x Adjacent Habitat Association\",\n       x = \"Adjacent Habitat\", y = \"Location\")\nprint(Habitat_Location_Heatmap)\n\n\n\n\n\n\n\nggsave(\"Habitat_Location_Heatmap.pdf\", plot = Habitat_Location_Heatmap, width = 10, height = 8, dpi = 300)"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#species-by-site-heatmap",
+    "href": "Stat_210_Final_Project.html#species-by-site-heatmap",
+    "title": "Stat 210 Final Project",
+    "section": "Species by Site Heatmap",
+    "text": "Species by Site Heatmap\n\nsite_species &lt;- Fish_Cleaned_2 %&gt;%\n  filter(!is.na(Region), !Species %in% c(\"UFO\", \"YOY\", \"OYT_YOY\", \"KGB_YOY\")) %&gt;%\n  group_by(Region, Location, Species) %&gt;%\n  summarise(count = n(), .groups = \"drop\") %&gt;%\n  mutate(\n    Species = recode(Species, \"Black_Eyed_Gobeye\" = \"Black_Eyed_Goby\"),\n    Species = str_replace_all(Species, \"_\", \" \"),\n    Location = str_replace_all(Location, \"_\", \" \"),\n    Region = str_replace_all(Region, \"_\", \" \")\n  )\n\nsite_species &lt;- site_species %&gt;%\n  mutate(Location = factor(Location, levels = c(\n    \"NMON\", \"SMON\", \"Carmel Beach\",    # Carmel Bay\n    \"BW Wall\", \"BW Reef\", \"Mcabee\",    # Monterey Bay\n    \"Point Pinos\"                       # Transition Zone\n  )))\n\nSpecies_Presence_Heatmap &lt;- ggplot(site_species, aes(x = Location, y = Species, fill = count)) +\n  geom_tile(color = \"white\", linewidth = 0.5) +\n  scale_fill_gradient(low = \"lightblue\", high = \"darkblue\",\n                      name = \"Observations\") +\n  facet_grid(~ Region, scales = \"free_x\", space = \"free_x\") +\n  theme_minimal(base_size = 12) +\n  theme(\n    axis.text.x      = element_text(angle = 45, hjust = 1),\n    axis.text.y      = element_text(size = 9),\n    strip.text       = element_text(face = \"bold\", color = \"white\"),\n    strip.background = element_rect(fill = c(\"steelblue\", \"darkgreen\", \"orange\"), color = NA),\n    panel.spacing    = unit(0.3, \"lines\"),\n    legend.position  = \"right\"\n  ) +\n  labs(x = NULL, y = NULL,\n       title = \"Species presence by site\",\n       subtitle = \"Grouped by biogeographic region\")\nprint(Species_Presence_Heatmap)\n\n\n\n\n\n\n\nggsave(\"Species_Presence_Heatmap.pdf\", plot = Species_Presence_Heatmap, width = 10, height = 8, dpi = 300)"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#density-of-fish-per-site",
+    "href": "Stat_210_Final_Project.html#density-of-fish-per-site",
+    "title": "Stat 210 Final Project",
+    "section": "Density of Fish per site",
+    "text": "Density of Fish per site\n\ntransect_area_m2 &lt;- 120 \n\ndensity_df &lt;- Fish_Cleaned_3 %&gt;%\n  group_by(Location, Region) %&gt;%\n  summarise(total_fish = n(), .groups = \"drop\") %&gt;%\n  mutate(\n    density = total_fish / transect_area_m2,\n    Location = str_replace_all(Location, \"_\", \" \"),\n    Region = str_replace_all(Region, \"_\", \" \")\n  ) %&gt;%\n  mutate(\n    Location = factor(Location, levels = c(\n      \"BW Wall\", \"BW Reef\", \"Mcabee\",          # Monterey Bay\n      \"Point Pinos\",                             # Transition Zone\n      \"SMON\", \"NMON\", \"Carmel Beach\"            # Carmel Bay\n    )),\n    Region = factor(Region, levels = c(\"Monterey Bay\", \"Transition Zone\", \"Carmel Bay\"))\n  )\nprint(density_df)\n\n# A tibble: 7 × 4\n  Location     Region          total_fish density\n  &lt;fct&gt;        &lt;fct&gt;                &lt;int&gt;   &lt;dbl&gt;\n1 BW Reef      Monterey Bay            32  0.267 \n2 BW Wall      Monterey Bay            90  0.75  \n3 Carmel Beach Carmel Bay               2  0.0167\n4 Mcabee       Monterey Bay            17  0.142 \n5 NMON         Carmel Bay              19  0.158 \n6 Point Pinos  Transition Zone         36  0.3   \n7 SMON         Carmel Bay               6  0.05"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#define-socal-vs.-norcal",
+    "href": "Stat_210_Final_Project.html#define-socal-vs.-norcal",
+    "title": "Stat 210 Final Project",
+    "section": "Define SoCal VS. NorCal",
+    "text": "Define SoCal VS. NorCal\n\nunique(Fish_Cleaned_2$Species)\n\n [1] \"Bocaccio\"            \"Blue_Rockfish\"       \"Pile_Perch\"         \n [4] \"Rockfish\"            \"Olive_Rockfish\"      \"Perch\"              \n [7] \"Kelp_Perch\"          \"Painted_Greenling\"   \"Yellowtail_Rockfish\"\n[10] \"Kelp_Greenling\"      \"Rubberlip_Perch\"     \"Kelp_Bass\"          \n[13] \"CA_Sheephead_F\"      \"Black_Eyed_Gobeye\"   \"Halfmoon\"           \n[16] \"Opaleye\"             \"Blacksmith\"          \"Kelp_Rockfish\"      \n[19] \"Lingcod\"             \"Black_Perch\"         \"Striped_Perch\"      \n[22] \"Senorita\"            \"Copper_Rockfish\"    \n\n# Define SoCal and NorCal species using exact names from dataset\nsocal_species &lt;- c(\"Senorita\", \"CA_Sheephead_F\", \"Halfmoon\", \n                   \"Opaleye\", \"Kelp_Bass\",                            \"Blacksmith\")\n\nnorcal_species &lt;- c(\"Blue_Rockfish\", \"Pile_Perch\", \"Olive_Rockfish\", \"Kelp_Perch\",\n                    \"Painted_Greenling\", \"Yellowtail_Rockfish\", \"Kelp_Greenling\",\n                    \"Rubberlip_Perch\", \"Black_Eyed_Goby\", \"Lingcod\", \n                    \"Striped_Perch\", \"Copper_Rockfish\", \"Bocaccio\", \"Black_Perch\", \"Kelp_Rockfish\")\n\n# Filter out ambiguous IDs and classify\nFish_Classified &lt;- Fish_Cleaned_3 %&gt;%\n  filter(!Species %in% c(\"YOY\", \"Rockfish\", \"Perch\", \"KGB_YOY\", \"OYT_YOY\", \"UFO\")) %&gt;%\n  mutate(Bioregion = case_when(\n    Species %in% socal_species  ~ \"Southern CA\",\n    Species %in% norcal_species ~ \"Northern CA\",\n    TRUE ~ NA_character_\n  ))\n\n\nNMDS Plot"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#building-proportion-data",
+    "href": "Stat_210_Final_Project.html#building-proportion-data",
+    "title": "Stat 210 Final Project",
+    "section": "Building proportion data",
+    "text": "Building proportion data\n\ndiverging_df &lt;- Fish_Classified %&gt;%\n  group_by(Location, Region) %&gt;%\n  summarise(\n    prop_socal = mean(Bioregion == \"Southern CA\"),\n    prop_norcal = mean(Bioregion == \"Northern CA\"),\n    .groups = \"drop\"\n  ) %&gt;%\n  pivot_longer(cols = c(prop_socal, prop_norcal),\n               names_to = \"Bioregion\",\n               values_to = \"Proportion\") %&gt;%\n  mutate(\n    Proportion = ifelse(Bioregion == \"prop_norcal\", -Proportion, Proportion),\n    Bioregion = recode(Bioregion,\n                       \"prop_socal\" = \"Southern CA\",\n                       \"prop_norcal\" = \"Northern CA\"),\n    Location = str_replace_all(Location, \"_\", \" \"),\n    Region = str_replace_all(Region, \"_\", \" \"),\n    Location = factor(Location, levels = c(\n      \"NMON\", \"SMON\", \"Carmel Beach\",\n      \"BW Wall\", \"BW Reef\", \"Mcabee\",\n      \"Point Pinos\"\n    ))\n  )"
+  },
+  {
+    "objectID": "Stat_210_Final_Project.html#diverging-bar-chart",
+    "href": "Stat_210_Final_Project.html#diverging-bar-chart",
+    "title": "Stat 210 Final Project",
+    "section": "Diverging Bar Chart",
+    "text": "Diverging Bar Chart\n\nSocal_Norcal_Barchart &lt;- ggplot(diverging_df, aes(x = Location, y = Proportion, fill = Bioregion)) +\n  geom_col(color = \"white\", linewidth = 0.5) +\n  geom_hline(yintercept = 0, linewidth = 0.8, color = \"gray20\") +\n  scale_fill_manual(values = c(\n    \"Southern CA\" = \"orange\",\n    \"Northern CA\" = \"steelblue\"\n  )) +\n  scale_y_continuous(\n    labels = function(x) paste0(abs(x) * 100, \"%\"),\n    limits = c(-1, 1)\n  ) +\n  facet_grid(~ Region, scales = \"free_x\", space = \"free_x\") +\n  coord_flip() +\n  theme_minimal(base_size = 12) +\n  theme(\n    strip.background = element_rect(fill = \"gray90\", color = NA),\n    strip.text = element_text(face = \"bold\", size = 10),\n    panel.spacing = unit(0.5, \"lines\"),\n    legend.position = \"bottom\",\n    panel.grid.major.y = element_blank()\n  ) +\n  labs(\n    title = \"Biogeographic composition by site\",\n    subtitle = \"Proportion of Southern CA vs Northern CA species\",\n    x = NULL,\n    y = \"Proportion\",\n    fill = \"Bioregion\"\n  )\nprint(Socal_Norcal_Barchart)\n\n\n\n\n\n\n\nggsave(\"Socal_Norcal_Barchart.pdf\", plot = Socal_Norcal_Barchart, width = 10, height = 8, dpi = 300)"
   }
 ]
